@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
+	"github.com/xykong/ApkChannels/sign"
 
 	"github.com/spf13/cobra"
 )
@@ -33,6 +35,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("sign called")
+		sign.Sign()
 	},
 }
 
@@ -48,4 +51,19 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// signCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+
+	signCmd.PersistentFlags().String("in", "", "Input APK file to sign.")
+	_ = viper.BindPFlag("in", signCmd.PersistentFlags().Lookup("in"))
+
+	signCmd.PersistentFlags().String("out", "", "File into which to output the signed APK.")
+	_ = viper.BindPFlag("out", signCmd.PersistentFlags().Lookup("out"))
+
+	signCmd.PersistentFlags().Bool("v1-signing-enabled", true,
+		"Whether to enable signing using JAR signing scheme (aka v1 signing scheme)")
+	_ = viper.BindPFlag("v1-signing-enabled", signCmd.PersistentFlags().Lookup("v1-signing-enabled"))
+
+	signCmd.PersistentFlags().Bool("v2-signing-enabled", false,
+		"Whether to enable signing using APK Signature Scheme v2 (aka v2 signing scheme)")
+	_ = viper.BindPFlag("v2-signing-enabled", signCmd.PersistentFlags().Lookup("v2-signing-enabled"))
+
 }
