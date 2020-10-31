@@ -17,7 +17,11 @@ func Sign() {
 	var dst = viper.GetString("out")
 
 	if viper.GetBool("v1-signing-enabled") {
-		ChannelV1(src, dst)
+		channel := viper.GetString("channel")
+		err := V1Writer(src, dst, channel)
+		if err != nil {
+			log.Fatal(err)
+		}
 		return
 	}
 

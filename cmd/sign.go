@@ -52,18 +52,20 @@ func init() {
 	// is called directly, e.g.:
 	// signCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	signCmd.PersistentFlags().String("in", "", "Input APK file to sign.")
+	signCmd.PersistentFlags().StringP("in", "i", "", "Input APK file to sign.")
 	_ = viper.BindPFlag("in", signCmd.PersistentFlags().Lookup("in"))
 
-	signCmd.PersistentFlags().String("out", "", "File into which to output the signed APK.")
+	signCmd.PersistentFlags().StringP("out", "o", "", "File into which to output the signed APK.")
 	_ = viper.BindPFlag("out", signCmd.PersistentFlags().Lookup("out"))
 
-	signCmd.PersistentFlags().Bool("v1-signing-enabled", true,
+	signCmd.PersistentFlags().BoolP("v1-signing-enabled", "1", true,
 		"Whether to enable signing using JAR signing scheme (aka v1 signing scheme)")
 	_ = viper.BindPFlag("v1-signing-enabled", signCmd.PersistentFlags().Lookup("v1-signing-enabled"))
 
-	signCmd.PersistentFlags().Bool("v2-signing-enabled", false,
+	signCmd.PersistentFlags().BoolP("v2-signing-enabled", "2", false,
 		"Whether to enable signing using APK Signature Scheme v2 (aka v2 signing scheme)")
 	_ = viper.BindPFlag("v2-signing-enabled", signCmd.PersistentFlags().Lookup("v2-signing-enabled"))
 
+	signCmd.PersistentFlags().StringP("channel", "c", "", "Channel info")
+	_ = viper.BindPFlag("channel", signCmd.PersistentFlags().Lookup("channel"))
 }

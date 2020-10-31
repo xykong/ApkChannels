@@ -15,3 +15,5 @@
 # vendor/
 output/
 *.apk
+*.zip
+.DS_Store
