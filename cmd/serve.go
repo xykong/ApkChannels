@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"github.com/xykong/ApkChannels/services"
 
 	"github.com/spf13/cobra"
@@ -42,13 +43,9 @@ to quickly create a Cobra application.`,
 func init() {
 	rootCmd.AddCommand(serveCmd)
 
-	// Here you will define your flags and configuration settings.
+	serveCmd.PersistentFlags().StringP("address", "a", "0.0.0.0:8080", "Listening address...")
+	_ = viper.BindPFlag("address", serveCmd.PersistentFlags().Lookup("address"))
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// serveCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	serveCmd.PersistentFlags().StringP("root", "r", "", "Root path of APK files to sign.")
+	_ = viper.BindPFlag("root", serveCmd.PersistentFlags().Lookup("root"))
 }

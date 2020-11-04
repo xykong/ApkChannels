@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"os"
 )
 
@@ -19,7 +18,7 @@ func V1Writer(src, dst string, channel string) error {
 	if src == dst || len(dst) == 0 {
 		return V2WriteInPlace(src, channel)
 	} else {
-		return V2WriteStream(src, dst, channel)
+		return V2WritePath(dst, src, channel)
 	}
 }
 
@@ -71,18 +70,31 @@ func V2WriteInPlace(src string, channel string) error {
 	return nil
 }
 
-func V2WriteStream(src, dst string, channel string) error {
+func CreateSrcReader(src string) (reader io.ReadCloser, offset int64, err error) {
 
 	file, err := os.OpenFile(src, os.O_RDONLY, os.ModePerm)
 	if err != nil {
+		return nil, 0, fmt.Errorf("open file failed: %v", src)
+	}
+
+	offset, err = seekEOCD(file)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	_, _ = file.Seek(0, 0)
+
+	return file, offset + 20, nil
+}
+
+func V2WritePath(dst, src string, channel string) error {
+
+	srcFile, offset, err := CreateSrcReader(src)
+
+	if err != nil {
 		return fmt.Errorf("open file failed: %v", src)
 	}
-	defer file.Close()
-
-	offset, err := seekEOCD(file)
-	if err != nil {
-		return err
-	}
+	defer srcFile.Close()
 
 	dstFile, err := os.Create(dst)
 	if err != nil {
@@ -90,12 +102,12 @@ func V2WriteStream(src, dst string, channel string) error {
 	}
 	defer dstFile.Close()
 
-	stat, _ := file.Stat()
-	log.Printf("offset: %v, total: %v", offset, stat)
+	return V2WriteStream(dstFile, srcFile, offset, channel)
+}
 
-	_, _ = file.Seek(0, 0)
-	_, err = io.CopyN(dstFile, file, offset+20)
-	//_, err = io.Copy(dstFile, file)
+func V2WriteStream(dst io.Writer, src io.Reader, offset int64, channel string) error {
+
+	_, err := io.CopyN(dst, src, offset)
 	if err != nil {
 		return fmt.Errorf("io.CopyN file %v to %v failed: %v", src, dst, err)
 	}
@@ -103,12 +115,12 @@ func V2WriteStream(src, dst string, channel string) error {
 	// .ZIP file comment length
 	size := int16(len(channel))
 
-	err = binary.Write(dstFile, binary.LittleEndian, size)
+	err = binary.Write(dst, binary.LittleEndian, size)
 	if err != nil {
 		return fmt.Errorf("binary.Write %v failed: %v", dst, err)
 	}
 
-	_, err = dstFile.WriteString(channel)
+	_, err = dst.Write([]byte(channel))
 	if err != nil {
 		return fmt.Errorf("file.WriteString %v failed: %v", dst, err)
 	}
