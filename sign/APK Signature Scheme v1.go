@@ -7,7 +7,10 @@ import (
 	"os"
 )
 
-var eocd int64 = 0x6054B50
+var EocdMagic int64 = 0x6054B50
+
+// This is the EOCD offset of zip file with empty comment from eocd magic to comment size byte
+var EocdToSizeByteOffset int64 = 20
 
 func V1Writer(src, dst string, channel string) error {
 
@@ -33,7 +36,7 @@ func seekEOCD(file *os.File) (offset int64, err error) {
 	var mark int64 = 0
 	err = binary.Read(file, binary.LittleEndian, &mark)
 
-	if eocd != mark {
+	if EocdMagic != mark {
 		return 0, fmt.Errorf(".zip file with commnet not support: %v", file.Name())
 	}
 
@@ -84,7 +87,7 @@ func CreateSrcReader(src string) (reader io.ReadCloser, offset int64, err error)
 
 	_, _ = file.Seek(0, 0)
 
-	return file, offset + 20, nil
+	return file, offset + EocdToSizeByteOffset, nil
 }
 
 func V2WritePath(dst, src string, channel string) error {
